@@ -55,6 +55,9 @@ unsigned char earliest_day = 0xFF;
 unsigned char earliest_hour = 0xFF;
 unsigned char earliest_minute = 0xFF;
 
+static unsigned int preview_start_tick = 0;
+static unsigned char preview_visible = NO;
+
 
 unsigned int blink_timer;
 
@@ -179,14 +182,14 @@ void DEFAULT_MODE()
     unsigned int elapsed = (unsigned int)(get_ticks() - preview_start_tick);
 
     // Restart the 5-second cycle
-    if(elapsed >= 500)
+    if(elapsed >= 700)
     {
         preview_start_tick = get_ticks();
         elapsed = 0;
     }
 
     // Display next alarm for 2 seconds
-    if(elapsed >= 300 && earliest_event_index != 0xFF)
+    if(elapsed >= 500 && earliest_event_index != 0xFF)
     {
         if(preview_visible == NO)
         {
@@ -222,11 +225,12 @@ void DEFAULT_MODE()
 
 void print_default_mode_clcd_screen()
 {
-    clcd_print("DATE  ",LINE1(0));
-    clcd_print("TIME  ",LINE2(0));
+    preview_visible = NO;
+    preview_start_tick = get_ticks();
 
-    clcd_print("  ",LINE1(14));
-    clcd_print("  ",LINE2(14));
+    clcd_print("DATE  ", LINE1(0));
+    clcd_print("TIME  ", LINE2(0));
 
+    clcd_print("  ", LINE1(14));
+    clcd_print("  ", LINE2(14));
 }
-
