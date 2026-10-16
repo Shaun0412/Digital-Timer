@@ -180,13 +180,15 @@ void save_event_to_eeprom(event_t *current_event)
 }
 
 
-unsigned char earliest_event_index = 0xFF;
-unsigned char earliest_year = 0xFF;
-unsigned char earliest_month = 0xFF;
-unsigned char earliest_day = 0xFF;
-unsigned char earliest_hour = 0xFF;
-unsigned char earliest_minute = 0xFF;
+extern unsigned char earliest_event_index;
+extern unsigned char earliest_year;
+extern unsigned char earliest_month;
+extern unsigned char earliest_day;
+extern unsigned char earliest_hour;
+extern unsigned char earliest_minute;
 
+static unsigned int preview_start_tick = 0;
+static unsigned char preview_visible = NO;
 
 //this fn will find which event to be triggered when one is succesfully triggered or new one is added
 void find_next_event()

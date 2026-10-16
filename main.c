@@ -47,6 +47,14 @@ unsigned int previous_activity_time_set_alarm;
 unsigned int previous_activity_time_view_alarm;
 unsigned int previous_activity_confirm_alarm;
 
+/*Earliest alarm to be triggered*/
+unsigned char earliest_event_index = 0xFF;
+unsigned char earliest_year = 0xFF;
+unsigned char earliest_month = 0xFF;
+unsigned char earliest_day = 0xFF;
+unsigned char earliest_hour = 0xFF;
+unsigned char earliest_minute = 0xFF;
+
 
 unsigned int blink_timer;
 
@@ -154,36 +162,64 @@ void main(void)
 
 void DEFAULT_MODE()
 {
-    unsigned char key;
+    unsigned char key = key_handler_get_event();
 
-    //update date and time
-    
-    clcd_get_date();
-    clcd_print(date,LINE1(6));
-
-    
-    clcd_get_time();
-    clcd_print(time,LINE2(6));
-    
-
-    key = key_handler_get_event();
-
-    //display next alarm
-
-    //detect switch press and change modes
+    // Enter configuration mode
     if(key == KEY_UP_PRESS || key == KEY_DOWN_PRESS)
     {
-        //no idea what is required here
         previous_activity_time_configmode = get_ticks();
         config_mode_menu_index = first_option_index;
+
         print_screen_config_mode();
         mode = m_config_mode;
         key_handler_ignore_until_release();
-        
-
+        return;
     }
-    return;
+
+    unsigned int elapsed = (unsigned int)(get_ticks() - preview_start_tick);
+
+    // Restart the 5-second cycle
+    if(elapsed >= 500)
+    {
+        preview_start_tick = get_ticks();
+        elapsed = 0;
+    }
+
+    // Display next alarm for 2 seconds
+    if(elapsed >= 300 && earliest_event_index != 0xFF)
+    {
+        if(preview_visible == NO)
+        {
+            clcd_print("NEXT ALARM      ", LINE1(0));
+            clcd_print("                ", LINE2(0));
+
+            print_two_digits(earliest_day, LINE2(0));
+            clcd_putch('/', LINE2(2));
+            print_two_digits(earliest_month, LINE2(3));
+
+            print_two_digits(earliest_hour, LINE2(6));
+            clcd_putch(':', LINE2(8));
+            print_two_digits(earliest_minute, LINE2(9));
+
+            preview_visible = YES;
+        }
+    }
+    else
+    {
+        // Restore normal display after preview
+        if(preview_visible == YES)
+        {
+            print_default_mode_clcd_screen();
+        }
+
+        clcd_get_date();
+        clcd_print(date, LINE1(6));
+
+        clcd_get_time();
+        clcd_print(time, LINE2(6));
+    }
 }
+
 void print_default_mode_clcd_screen()
 {
     clcd_print("DATE  ",LINE1(0));
