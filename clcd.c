@@ -74,3 +74,10 @@ void clcd_write(unsigned char byte, unsigned char mode)
     __delay_us(4100);//recommended waiting time
 }
     
+
+//extras
+void print_two_digits(unsigned char value, unsigned char position)
+{
+    clcd_putch((value / 10) + '0', position);
+    clcd_putch((value % 10) + '0', position + 1);
+}

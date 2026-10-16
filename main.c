@@ -141,6 +141,7 @@ void main(void)
             }
             case m_view_alarm:
             {
+                view_alarm();
                 break;
             }
             

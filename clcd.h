@@ -44,5 +44,9 @@ void clcd_print(const char *str, unsigned char addr);
 void clcd_write(unsigned char byte, unsigned char mode);
 
 
+
+//Extras
+void print_two_digits(unsigned char value, unsigned char position);
+
 #endif	/* CLCD_H */
 

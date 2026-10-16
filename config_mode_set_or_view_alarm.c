@@ -5,6 +5,8 @@
 #include "timer0.h"
 #include "time.h"
 #include "main.h"
+#include "ext_eeprom.h"
+
 extern unsigned int previous_activity_time_configmode;
 extern unsigned int previous_activity_time_set_or_view_alarm;
 extern unsigned int previous_activity_time_set_alarm;
@@ -50,11 +52,10 @@ void set_or_view_alarm()
                 }
                 else if (set_or_view_alarm_menu_index == second_option_index)
                 {
-                    //selection of first option
-                    mode = m_view_alarm;
-                    /*==========================PRINT NEXT SCREEN===================== */
-                    previous_activity_time_view_alarm = get_ticks();
                     
+                    mode = m_view_alarm;
+                    previous_activity_time_view_alarm = get_ticks();
+                   
                 }
 
             
@@ -366,3 +367,216 @@ void confirm_event()
 
 
 
+//===================================================================================================
+//VIEW ALARM
+//===================================================================================================
+
+
+void view_alarm_util()
+{
+    /*:LINE1-> TIME- HH:MM     *  */
+    clcd_print("TIME- ",LINE1(0));
+    /*LINE2->DUR - */
+    clcd_print("DUR - ",LINE2(0));
+    
+}
+
+void print_event(unsigned char hour,unsigned char min, unsigned char dur_hour,unsigned char dur_min,unsigned char dur_sec,event_trigger_t trig )
+{
+    
+    
+    //HH:
+    print_two_digits(hour,LINE1(6));
+    clcd_putch(':', LINE1(8));
+
+    //MM:
+    print_two_digits(min,LINE1(9));
+    
+    clcd_print("    ",LINE1(11));
+    //*
+    clcd_putch('*',LINE1(15));
+
+    
+    //HH:
+    print_two_digits(dur_hour,LINE2(6));
+    clcd_putch(':', LINE2(8));
+
+    //MM:
+    print_two_digits(dur_min,LINE2(9));
+    clcd_putch(':', LINE2(11));
+
+    //SS
+    print_two_digits(dur_sec,LINE2(12));
+    clcd_putch(' ',LINE2(14));
+
+    //Trigger-> O
+    clcd_putch("ODW"[trig],LINE2(15));
+}
+unsigned char find_next_event_index(unsigned char index)
+{
+    unsigned char count = 0;
+
+    do
+    {
+        ++index;
+
+        if(index >= MAX_EVENTS)
+            index = 0;
+
+        if(get_active_flag(index) == YES)
+            return index;
+
+        count++;
+
+    }while(count < MAX_EVENTS);
+
+    return 0xFF; //No active events
+}
+
+
+unsigned char find_previous_event_index(unsigned char index)
+{
+    unsigned char count = 0;
+
+    do
+    {
+        if(index == 0)
+            index = MAX_EVENTS - 1;
+        else
+            --index;
+
+        if(get_active_flag(index) == YES)
+            return index;
+
+        count++; //this checks if every slot is checked
+
+    }while(count < MAX_EVENTS);
+
+    return 0xFF; //No active events
+}
+void view_alarm()
+{
+    
+
+    unsigned int address;
+    unsigned char hour, min, dur_hour, dur_min, dur_sec;
+    event_trigger_t trig_type;
+
+    static unsigned char i = 0;
+    static unsigned char initialized_view = NO;
+
+    unsigned char key_event = key_handler_get_event();
+    unsigned char refresh = NO; //local variable so resetted NO in every iteration
+
+    //INITIALIZATION
+    if(initialized_view == NO)
+    {
+        clcd_print("VIEW START      ", LINE1(0));
+
+    i = 0;
+
+    if(get_active_flag(i) != YES)
+    {
+        i = find_next_event_index(i);
+    }
+
+    clcd_print("EEPROM DONE     ", LINE1(0));
+
+    initialized_view = YES;
+    refresh = YES;
+
+    previous_activity_time_view_alarm = get_ticks();
+    }
+
+    if(key_event == KEY_UP_SHORT)
+    { 
+        if(i != 0xFF)
+        {
+            i=find_next_event_index(i);
+            refresh = YES;
+        }
+            
+    }
+    else if(key_event == KEY_DOWN_SHORT)
+    {
+        if(i != 0xFF)
+        {
+            i = find_previous_event_index(i);
+            refresh = YES;
+        }
+    }
+    
+    else if(key_event == KEY_DOWN_LONG)
+    {
+        //delete that event
+        if(i!=0xFF)
+        {
+            delete_event(i);
+            find_next_event();//recalculating alarm 
+
+            //finding next index to display on screen
+            i = find_next_event_index(i);
+            refresh = YES;
+        }
+    }
+    else if(key_event == KEY_UP_LONG)
+    {
+        initialized_view = NO;
+
+        print_screen_set_or_view_alarm();
+
+        previous_activity_time_set_or_view_alarm = get_ticks();
+        mode = m_set_or_view_alarm;
+
+        return;
+    }
+    if(refresh == YES)
+    {
+        if(i == 0xFF)
+        {
+            clcd_print("No Events Saved ",LINE1(0));
+            clcd_print("Press UP->BACK  ",LINE2(0));
+
+            return;
+
+        }
+        else
+        {
+            address = EEPROM_EVENT_START_ADDR + (i * EEPROM_EVENT_SIZE);
+
+            hour = read_external_eeprom(address + EEPROM_HOUR_OFFSET);
+            min = read_external_eeprom(address + EEPROM_MINUTE_OFFSET);
+
+            dur_hour = read_external_eeprom(address + EEPROM_DURATION_HOUR_OFFSET);
+            dur_min = read_external_eeprom(address + EEPROM_DURATION_MINUTE_OFFSET);
+            dur_sec = read_external_eeprom(address + EEPROM_DURATION_SECOND_OFFSET);
+
+            trig_type = get_trigger_value(i);
+
+            view_alarm_util();
+
+            print_event(hour,min,dur_hour,dur_min,dur_sec,trig_type);
+        }
+    }
+    if(key_handler_inactive(&previous_activity_time_view_alarm))
+    {
+        initialized_view = NO;
+
+        print_default_mode_clcd_screen();
+        mode = m_default_mode;
+    }
+    
+      
+
+}
+
+void delete_event(unsigned char i)
+{
+    write_external_eeprom(NO,(EEPROM_EVENT_START_ADDR + i * EEPROM_EVENT_SIZE) + EEPROM_ACTIVE_FLAG_OFFSET);
+    return;
+}
+
+unsigned char get_active_flag(unsigned char i)
+{
+    return read_external_eeprom(EEPROM_EVENT_START_ADDR + (i* EEPROM_EVENT_SIZE) + EEPROM_ACTIVE_FLAG_OFFSET);
+}

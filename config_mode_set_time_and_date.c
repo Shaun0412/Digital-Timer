@@ -24,6 +24,8 @@ extern unsigned char set_time_date_menu_index;
 
 extern unsigned int blink_timer;
 
+
+
 void set_time_and_date()
 {
     unsigned char key_event = key_handler_get_event();
@@ -168,16 +170,16 @@ static void set_time_util()
 
     clcd_print("HH:MM:SS         ", LINE1(0));
 
-    clcd_putch((current_time.hour/ 10) + '0', LINE2(0));
-    clcd_putch((current_time.hour % 10) + '0', LINE2(1));
+    print_two_digits(current_time.hour,LINE2(0));
+    
 
     clcd_putch(':', LINE2(2));
-    clcd_putch((current_time.minute / 10) + '0', LINE2(3));
-    clcd_putch((current_time.minute % 10) + '0', LINE2(4));
+    print_two_digits(current_time.minute,LINE2(3));
+    
 
     clcd_putch(':', LINE2(5));
-    clcd_putch((current_time.second / 10) + '0', LINE2(6));
-    clcd_putch((current_time.second % 10) + '0', LINE2(7));
+    print_two_digits(current_time.second,LINE2(6));
+    
     clcd_print("         ",LINE2(8));
 
 }
@@ -213,8 +215,7 @@ void set_time()
             else if(blink_status == 0)
             {
                 blink_status = 1;
-                clcd_putch((current_time.second / 10) + '0', LINE2(6));
-                clcd_putch((current_time.second % 10) + '0', LINE2(7));  
+                print_two_digits(current_time.second,LINE2(6));
             }
 
         }
@@ -231,8 +232,7 @@ void set_time()
             else if(blink_status == 0)
             {
                 blink_status = 1;
-                clcd_putch((current_time.minute / 10) + '0', LINE2(3));
-                clcd_putch((current_time.minute % 10) + '0', LINE2(4));  
+                print_two_digits(current_time.minute,LINE2(3)); 
             }
         }
         else if(current_time.selected_field == HOUR_FIELD)
@@ -248,8 +248,7 @@ void set_time()
             else if(blink_status == 0)
             {
                 blink_status = 1;
-                clcd_putch((current_time.hour / 10) + '0', LINE2(0));
-                clcd_putch((current_time.hour % 10) + '0', LINE2(1));  
+                print_two_digits(current_time.hour,LINE2(0));
             }
         }
     }
@@ -277,22 +276,19 @@ void set_time()
                 if(current_time.selected_field == SECOND_FIELD)
                 {
                     //reprinting seconds, because it can remain blank if during blink it was OFF
-                    clcd_putch((current_time.second / 10) + '0', LINE2(6));
-                    clcd_putch((current_time.second % 10) + '0', LINE2(7));
+                    print_two_digits(current_time.second,LINE2(6));
                     current_time.selected_field = MINUTE_FIELD;
                 }
                 else if(current_time.selected_field == MINUTE_FIELD)
                 {
                     //reprinting mins, because it can remain blank if during blink it was OFF
-                    clcd_putch((current_time.minute / 10) + '0', LINE2(3));
-                    clcd_putch((current_time.minute % 10) + '0', LINE2(4));
+                    print_two_digits(current_time.minute,LINE2(3));
                     current_time.selected_field = HOUR_FIELD;
                 }
                 else if(current_time.selected_field == HOUR_FIELD)
                 {
                     //reprinting hrs, because it can remain blank if during blink it was OFF
-                    clcd_putch((current_time.hour / 10) + '0', LINE2(0));
-                    clcd_putch((current_time.hour % 10) + '0', LINE2(1));
+                    print_two_digits(current_time.hour,LINE2(0));
                     current_time.selected_field = SECOND_FIELD;
                 }
             
@@ -308,8 +304,7 @@ void set_time()
                     current_time.second = 0;
                 }
                 //print the second
-                clcd_putch(current_time.second/10 + '0',LINE2(6));
-                clcd_putch(current_time.second %10 + '0',LINE2(7));
+                print_two_digits(current_time.second,LINE2(6));
                 blink_status = 1;
             }
             else if(current_time.selected_field == MINUTE_FIELD)
@@ -320,8 +315,7 @@ void set_time()
                  current_time.minute = 0;
                 }
                 //print the minute
-                clcd_putch(current_time.minute/10 + '0',LINE2(3));
-                clcd_putch(current_time.minute %10 + '0',LINE2(4));
+                print_two_digits(current_time.minute,LINE2(3));
                 blink_status = 1;
             }
             else if(current_time.selected_field == HOUR_FIELD)
@@ -331,8 +325,7 @@ void set_time()
                     current_time.hour = 0;
                 }
                 //print the hour
-                clcd_putch(current_time.hour/10 + '0',LINE2(0));
-                clcd_putch(current_time.hour %10 + '0',LINE2(1));
+                print_two_digits(current_time.hour,LINE2(0));
                 blink_status = 1; // restarting blink after every edit, to make bloinking consistent
             }
         
@@ -364,8 +357,7 @@ void set_time()
                     current_time.second--;
                 }
                 //print the second
-                clcd_putch(current_time.second/10 + '0',LINE2(6));
-                clcd_putch(current_time.second %10 + '0',LINE2(7));
+                print_two_digits(current_time.second,LINE2(6));
             }
             else if(current_time.selected_field == MINUTE_FIELD)
             {
@@ -379,8 +371,7 @@ void set_time()
                      current_time.minute--;
                 }
                 //print the minut
-                clcd_putch(current_time.minute/10 + '0',LINE2(3));
-                clcd_putch(current_time.minute %10 + '0',LINE2(4));
+                print_two_digits(current_time.minute,LINE2(3));
             }
             else if(current_time.selected_field == HOUR_FIELD)
             {
@@ -393,8 +384,7 @@ void set_time()
                     current_time.hour--;
                 }
                 //print the hour
-                clcd_putch(current_time.hour/10 + '0',LINE2(0));
-                clcd_putch(current_time.hour %10 + '0',LINE2(1));
+                print_two_digits(current_time.hour,LINE2(0));
             }
         
     }
@@ -512,16 +502,13 @@ static void set_date_util()
 
     clcd_print("Set Date        ",LINE1(0));
 
-    clcd_putch(current_date.day/10 + '0',LINE2(0));
-    clcd_putch(current_date.day%10 + '0',LINE2(1));
+    print_two_digits(current_date.day,LINE2(0));
     clcd_putch('/',LINE2(2));
 
-    clcd_putch(current_date.month/10 + '0',LINE2(3));
-    clcd_putch(current_date.month%10 + '0',LINE2(4));
+    print_two_digits(current_date.month,LINE2(3));
     clcd_putch('/',LINE2(5));
 
-    clcd_putch(current_date.year/10 + '0',LINE2(6));
-    clcd_putch(current_date.year%10 + '0',LINE2(7));
+    print_two_digits(current_date.year,LINE2(6));
     clcd_print("        ",LINE2(8));
 }
 
@@ -558,8 +545,7 @@ void set_date()
             else if(blink_status == 0)
             {
                 blink_status = 1;
-                clcd_putch((current_date.year / 10) + '0', LINE2(6));
-                clcd_putch((current_date.year% 10) + '0', LINE2(7));  
+                print_two_digits(current_date.year,LINE2(6));
             }
 
         }
@@ -576,8 +562,7 @@ void set_date()
             else if(blink_status == 0)
             {
                 blink_status = 1;
-                clcd_putch((current_date.month / 10) + '0', LINE2(3));
-                clcd_putch((current_date.month % 10) + '0', LINE2(4));  
+                print_two_digits(current_date.month,LINE2(3));
             }
         }
         else if(current_date.selected_field == DAY_FIELD)
@@ -593,8 +578,7 @@ void set_date()
             else if(blink_status == 0)
             {
                 blink_status = 1;
-                clcd_putch((current_date.day / 10) + '0', LINE2(0));
-                clcd_putch((current_date.day % 10) + '0', LINE2(1));  
+                print_two_digits(current_date.day,LINE2(0));
             }
         }
     }
@@ -608,20 +592,17 @@ void set_date()
 
                 if(current_date.selected_field == DAY_FIELD)
                 {
-                    clcd_putch((current_date.day / 10) + '0', LINE2(0));
-                    clcd_putch((current_date.day % 10) + '0', LINE2(1)); 
+                    print_two_digits(current_date.day,LINE2(0));
                     current_date.selected_field = MONTH_FIELD;
                 }
                 else if(current_date.selected_field == MONTH_FIELD)
                 {
-                    clcd_putch((current_date.month / 10) + '0', LINE2(3));
-                    clcd_putch((current_date.month % 10) + '0', LINE2(4)); 
+                    print_two_digits(current_date.month,LINE2(3));
                     current_date.selected_field = YEAR_FIELD;
                 }
                 else if(current_date.selected_field == YEAR_FIELD)
                 {
-                    clcd_putch((current_date.year / 10) + '0', LINE2(6));
-                    clcd_putch((current_date.year % 10) + '0', LINE2(7)); 
+                    print_two_digits(current_date.year,LINE2(6));
                     current_date.selected_field = DAY_FIELD;
                 }
             
@@ -635,8 +616,7 @@ void set_date()
                     current_date.day = 1;
                 }
 
-                clcd_putch(current_date.day/10 + '0',LINE2(0));
-                clcd_putch(current_date.day%10 + '0',LINE2(1));
+                print_two_digits(current_date.day,LINE2(0));
             }
             else if(current_date.selected_field == MONTH_FIELD)
             {
@@ -648,13 +628,11 @@ void set_date()
                 if(current_date.day > get_max_days(current_date.month,current_date.year))
                 {
                     current_date.day = get_max_days(current_date.month,current_date.year);
-                    clcd_putch(current_date.day/10 + '0',LINE2(0));
-                    clcd_putch(current_date.day%10 + '0',LINE2(1));
+                    print_two_digits(current_date.day,LINE2(0));
                     
                 }
 
-                clcd_putch(current_date.month/10 + '0',LINE2(3));
-                clcd_putch(current_date.month%10 + '0',LINE2(4));
+                print_two_digits(current_date.month,LINE2(3));
                 blink_status = 1;
             }
             else if(current_date.selected_field == YEAR_FIELD)
@@ -667,13 +645,11 @@ void set_date()
                 if(current_date.day > get_max_days(current_date.month,current_date.year))
                 {
                     current_date.day = get_max_days(current_date.month,current_date.year);
-                    clcd_putch(current_date.day/10 + '0',LINE2(0));
-                    clcd_putch(current_date.day%10 + '0',LINE2(1));
+                    print_two_digits(current_date.day,LINE2(0));
     
                 }
 
-                clcd_putch(current_date.year/10 + '0',LINE2(6));
-                clcd_putch(current_date.year%10 + '0',LINE2(7));
+                print_two_digits(current_date.year,LINE2(6));
                 blink_status = 1;
             }
         
@@ -699,8 +675,7 @@ void set_date()
                     current_date.day--;
                 }
 
-                clcd_putch(current_date.day/10 + '0',LINE2(0));
-                clcd_putch(current_date.day%10 + '0',LINE2(1));
+                print_two_digits(current_date.day,LINE2(0));
             }
             else if(current_date.selected_field == MONTH_FIELD)
             {
@@ -716,12 +691,10 @@ void set_date()
                 if(current_date.day > get_max_days(current_date.month,current_date.year))
                 {
                     current_date.day = get_max_days(current_date.month,current_date.year);
-                    clcd_putch(current_date.day/10 + '0',LINE2(0));
-                    clcd_putch(current_date.day%10 + '0',LINE2(1));
+                    print_two_digits(current_date.day,LINE2(0));
                 }
 
-                clcd_putch(current_date.month/10 + '0',LINE2(3));
-                clcd_putch(current_date.month%10 + '0',LINE2(4));
+                print_two_digits(current_date.month,LINE2(3));
                 blink_status = 1;
             }
             else if(current_date.selected_field == YEAR_FIELD)
@@ -738,12 +711,10 @@ void set_date()
                 if(current_date.day > get_max_days(current_date.month,current_date.year))
                 {
                     current_date.day = get_max_days(current_date.month,current_date.year);
-                    clcd_putch(current_date.day/10 + '0',LINE2(0));
-                    clcd_putch(current_date.day%10 + '0',LINE2(1));
+                    print_two_digits(current_date.day,LINE2(0));
                 }
 
-                clcd_putch(current_date.year/10 + '0',LINE2(6));
-                clcd_putch(current_date.year%10 + '0',LINE2(7));
+                print_two_digits(current_date.year,LINE2(6));
                 blink_status = 1;
             }
         
