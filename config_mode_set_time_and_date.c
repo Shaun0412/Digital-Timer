@@ -6,9 +6,6 @@
 #include "time.h"
 #include "main.h"
 
-extern unsigned char long_press_detected;
-extern unsigned char prev_key;
-
 extern unsigned int previous_activity_time_configmode;
 extern unsigned int previous_activity_time_set_time_and_date;
 extern unsigned int previous_activity_time_set_time;
@@ -29,10 +26,7 @@ extern unsigned int blink_timer;
 
 void set_time_and_date()
 {
-    unsigned char key;
-    static unsigned int start_tick = 0;
-    unsigned int current_tick;
-    key = read_digital_keypad(LEVEL);
+    unsigned char key_event = key_handler_get_event();
    //set time
     //set data
     // arrow to select
@@ -45,21 +39,10 @@ void set_time_and_date()
     //LONG DOWN->goes back from current menu
     //SHORT UP/DOWN -> scrolls through the options//
 
-    if(key == UP || prev_key == UP)
-    {
-        previous_activity_time_set_time_and_date = get_ticks();
-        if(key == UP && prev_key == ALL_RELEASED)//the very first press
-        {
-            start_tick = get_ticks();
-            long_press_detected = NO;//starting from scratch for long press
-        }
-        current_tick = get_ticks();
-        if(prev_key == key && long_press_detected == NO)
-        {
-            if(current_tick - start_tick >= LONG_PRESS_THRESHOLD)
-            {  
+    if(key_event == KEY_UP_LONG)
+    {  
                 //execute long press operation
-                long_press_detected = YES;
+
 
          //oepration
                 if(set_time_date_menu_index == first_option_index)
@@ -76,12 +59,10 @@ void set_time_and_date()
                     mode = m_set_date;
                     /*==========================PRINT NEXT SCREEN===================== */
                 }
-            }
-
-        }
-
-        else if(key == ALL_RELEASED && long_press_detected == NO && prev_key == UP)
-        {
+            
+    }
+    else if(key_event == KEY_UP_SHORT)
+    {
             //short press
             if(set_time_date_menu_index == first_option_index)
             {
@@ -97,29 +78,13 @@ void set_time_and_date()
                 clcd_putch('>',LINE1(0));
                 clcd_putch(' ',LINE2(0));
             }
-        }
+        
     }
-    if(key == DOWN || prev_key == DOWN)
+    else if(key_event == KEY_DOWN_LONG)
     {
-        previous_activity_time_set_time_and_date = get_ticks();
-       if(key == DOWN && prev_key == ALL_RELEASED)//the very first press
-        {
-            start_tick = get_ticks();
-            long_press_detected = NO;//starting from scratch for long press
-        }
-        current_tick = get_ticks();
-
-        if(prev_key == key && long_press_detected == NO)
-
-        {
-
-            if(current_tick - start_tick >= LONG_PRESS_THRESHOLD)
-
-            {
 
                 //execute long press operation
 
-                long_press_detected = YES;
 
                 //operation
 
@@ -131,12 +96,10 @@ void set_time_and_date()
 
                 mode = m_config_mode;
 
-            }
-
-        }
-
-        else if(key == ALL_RELEASED && long_press_detected == NO && prev_key == DOWN)
-        {
+            
+    }
+    else if(key_event == KEY_DOWN_SHORT)
+    {
             //short press
             if(set_time_date_menu_index== first_option_index)
 
@@ -153,17 +116,15 @@ void set_time_and_date()
                 clcd_putch('>',LINE1(0));
                 clcd_putch(' ',LINE2(0));
             }
-        }
+        
     }
-    else if(key == ALL_RELEASED && prev_key == ALL_RELEASED)
+    if(key_handler_inactive(&previous_activity_time_set_time_and_date))
     {
-        if((get_ticks() - previous_activity_time_set_time_and_date) >= INACTIVITY_THRESHOLD)
-        {
             print_default_mode_clcd_screen();
             mode = m_default_mode;
-        }
+        
     }
-    prev_key = key;
+
     return;
 }
 
@@ -234,10 +195,7 @@ void set_time()
     /**/
 
     
-    unsigned char key;
-    static unsigned int start_tick = 0;
-    unsigned int current_tick;
-    
+    unsigned char key_event = key_handler_get_event();
     /*============BLINK THE SELECTED FIELD==============*/
     if(get_ticks() - blink_timer>= BLINK_THRESHOLD)
     {
@@ -295,15 +253,6 @@ void set_time()
             }
         }
     }
-
-
-
-
-
-
-
-
-    key = read_digital_keypad(LEVEL);
     //set time
     //set data
     // arrow to select
@@ -320,21 +269,10 @@ void set_time()
     //LONG DOWN->ASK CONFIRMATION FOR SAVING TIME
     //SHORT UP -> INCREMENT SELECTED FIELD
     //SHORT DOWN -> DEC SELECTED FIELD
-    if(key == UP || prev_key == UP)
+    if(key_event == KEY_UP_LONG)
     {
-        previous_activity_time_set_time = get_ticks();
-        if(key == UP && prev_key == ALL_RELEASED)//the very first press
-        {
-            start_tick = get_ticks();
-            long_press_detected = NO;//starting from scratch for long press
-        }
-        current_tick = get_ticks();
-        if(prev_key == key && long_press_detected == NO)
-        {
-            if(current_tick - start_tick >= LONG_PRESS_THRESHOLD)
-            {
                 //UP LONG PRESS
-                long_press_detected = YES;
+
               //oepration->field switching circularly
                 if(current_time.selected_field == SECOND_FIELD)
                 {
@@ -357,11 +295,10 @@ void set_time()
                     clcd_putch((current_time.hour % 10) + '0', LINE2(1));
                     current_time.selected_field = SECOND_FIELD;
                 }
-            }
-
-        }
-        else if(key == ALL_RELEASED && long_press_detected == NO && prev_key == UP)
-        {
+            
+    }
+    else if(key_event == KEY_UP_SHORT)
+    {
             //UP SHORT PRESS
             if(current_time.selected_field == SECOND_FIELD)
             {
@@ -398,32 +335,21 @@ void set_time()
                 clcd_putch(current_time.hour %10 + '0',LINE2(1));
                 blink_status = 1; // restarting blink after every edit, to make bloinking consistent
             }
-        }
+        
     }
-    if(key == DOWN || prev_key == DOWN)
+    else if(key_event == KEY_DOWN_LONG)
     {
-        previous_activity_time_set_time= get_ticks();
-        if(key == DOWN && prev_key == ALL_RELEASED)//the very first press
-        {
-            start_tick = get_ticks();
-            long_press_detected = NO;//starting from scratch for long press
-        }
-        current_tick = get_ticks();
-        if(prev_key == key && long_press_detected == NO)
-        {
-            if(current_tick - start_tick >= LONG_PRESS_THRESHOLD)
-            {
                 //execute LONG PRESS operation
-                long_press_detected = YES;
+
                 //operation->ask for time confirmation
                 previous_activity_time_confirm_time = get_ticks();
                 print_confirm_time_clcd_display();
               mode = m_confirm_save_time;
 
-            }
-        }
-        else if(key == ALL_RELEASED && long_press_detected == NO && prev_key == DOWN)
-        {
+            
+    }
+    else if(key_event == KEY_DOWN_SHORT)
+    {
             //SHORT PRESS
             //operation->decrement selected field
             if(current_time.selected_field == SECOND_FIELD)
@@ -470,18 +396,16 @@ void set_time()
                 clcd_putch(current_time.hour/10 + '0',LINE2(0));
                 clcd_putch(current_time.hour %10 + '0',LINE2(1));
             }
-        }
+        
     }
-    else if(key == ALL_RELEASED && prev_key == ALL_RELEASED)
+    if(key_handler_inactive(&previous_activity_time_set_time))
     {
-        if((get_ticks() - previous_activity_time_set_time) >= INACTIVITY_THRESHOLD)
-        {
             print_default_mode_clcd_screen();
             initialized = NO;
             mode = m_default_mode;
-        }
+        
     }
-    prev_key = key;
+
 
     return;
 
@@ -489,22 +413,17 @@ void set_time()
 
 
 
+
+
+
+
+
 void confirm_time(void)
 {
-    unsigned char key = read_digital_keypad(LEVEL);
-    static unsigned char ready = NO;
+    unsigned char key = key_handler_get_event();
+    
 
-    if (ready == NO)
-    {
-        if (key == ALL_RELEASED)
-        {
-            ready = YES;
-        }
-        prev_key = key;
-        return;
-    }
-
-    if (key == UP && prev_key == ALL_RELEASED)
+    if (key == KEY_UP_PRESS)
     {
         unsigned char bcd_sec, bcd_min, bcd_hour;
         bcd_sec = ((current_time.second / 10) << 4) | (current_time.second % 10);
@@ -517,28 +436,23 @@ void confirm_time(void)
         write_ds1307(bcd_sec, SEC_ADDR);
 
         initialized = NO;
-        ready = NO;
         print_default_mode_clcd_screen();
         mode = m_default_mode;
     }
-    else if (key == DOWN && prev_key == ALL_RELEASED)
+    else if (key == KEY_DOWN_PRESS)
     {
         initialized = NO;
-        ready = NO;
         print_screen_set_time_date();
         set_time_date_menu_index = first_option_index;
         previous_activity_time_set_time_and_date = get_ticks();
         mode = m_set_time_and_date;
     }
-    else if ((unsigned int)(get_ticks() - previous_activity_time_confirm_time) >= INACTIVITY_THRESHOLD)
+    else if (key_handler_inactive(&previous_activity_time_confirm_time))
     {
         initialized = NO;
-        ready = NO;
         print_default_mode_clcd_screen();
         mode = m_default_mode;
     }
-
-    prev_key = key;
 }
 typedef struct
 {
@@ -625,9 +539,7 @@ void set_date()
         blink_status = 1;
     }
 
-    unsigned char key;
-    static unsigned int start_tick = 0;
-    unsigned int current_tick;
+    unsigned char key_event = key_handler_get_event();
     /*==================BLINK LOGIC=======================*/
     /*============BLINK THE SELECTED FIELD==============*/
     if(get_ticks() - blink_timer>= BLINK_THRESHOLD)
@@ -686,30 +598,13 @@ void set_date()
             }
         }
     }
-    key = read_digital_keypad(LEVEL);
-
     //LONG UP-> SWITCH FIELD
     //LONG DOWN->ASK CONFIRMATION FOR SAVING DATE
     //SHORT UP -> INCREMENT SELECTED FIELD
     //SHORT DOWN -> DEC SELECTED FIELD
 
-    if(key == UP || prev_key == UP)
+    if(key_event == KEY_UP_LONG)
     {
-        previous_activity_time_set_date = get_ticks();
-
-        if(key == UP && prev_key == ALL_RELEASED)
-        {
-            start_tick = get_ticks();
-            long_press_detected = NO;
-        }
-
-        current_tick = get_ticks();
-
-        if(prev_key == key && long_press_detected == NO)
-        {
-            if((unsigned int)(current_tick - start_tick) >= LONG_PRESS_THRESHOLD)
-            {
-                long_press_detected = YES;
 
                 if(current_date.selected_field == DAY_FIELD)
                 {
@@ -729,10 +624,10 @@ void set_date()
                     clcd_putch((current_date.year % 10) + '0', LINE2(7)); 
                     current_date.selected_field = DAY_FIELD;
                 }
-            }
-        }
-        else if(key == ALL_RELEASED && long_press_detected == NO && prev_key == UP)
-        {
+            
+    }
+    else if(key_event == KEY_UP_SHORT)
+    {
             if(current_date.selected_field == DAY_FIELD)
             {
                 if(++current_date.day > get_max_days(current_date.month,current_date.year))
@@ -781,34 +676,18 @@ void set_date()
                 clcd_putch(current_date.year%10 + '0',LINE2(7));
                 blink_status = 1;
             }
-        }
+        
     }
-
-    if(key == DOWN || prev_key == DOWN)
+    else if(key_event == KEY_DOWN_LONG)
     {
-        previous_activity_time_set_date = get_ticks();
-
-        if(key == DOWN && prev_key == ALL_RELEASED)
-        {
-            start_tick = get_ticks();
-            long_press_detected = NO;
-        }
-
-        current_tick = get_ticks();
-
-        if(prev_key == key && long_press_detected == NO)
-        {
-            if((unsigned int)(current_tick - start_tick) >= LONG_PRESS_THRESHOLD)
-            {
-                long_press_detected = YES;
 
                 previous_activity_time_confirm_date = get_ticks();
                 print_confirm_date_clcd_display();
                 mode = m_confirm_save_date;
-            }
-        }
-        else if(key == ALL_RELEASED && long_press_detected == NO && prev_key == DOWN)
-        {
+            
+    }
+    else if(key_event == KEY_DOWN_SHORT)
+    {
             if(current_date.selected_field == DAY_FIELD)
             {
                 if(current_date.day == 1)
@@ -867,38 +746,25 @@ void set_date()
                 clcd_putch(current_date.year%10 + '0',LINE2(7));
                 blink_status = 1;
             }
-        }
+        
     }
-    else if(key == ALL_RELEASED && prev_key == ALL_RELEASED)
+    if(key_handler_inactive(&previous_activity_time_set_date))
     {
-        if((unsigned int)(get_ticks() - previous_activity_time_set_date) >= INACTIVITY_THRESHOLD)
-        {
             print_default_mode_clcd_screen();
             initialized_date = NO;
             mode = m_default_mode;
-        }
+        
     }
 
-    prev_key = key;
     return;
 }
 
 void confirm_date(void)
 {
-    unsigned char key = read_digital_keypad(LEVEL);
-    static unsigned char ready = NO;
+    unsigned char key = key_handler_get_event();
+    
 
-    if(ready == NO)
-    {
-        if(key == ALL_RELEASED)
-        {
-            ready = YES;
-        }
-        prev_key = key;
-        return;
-    }
-
-    if(key == UP && prev_key == ALL_RELEASED)
+    if(key == KEY_UP_PRESS)
     {
         unsigned char bcd_day,bcd_month,bcd_year;
 
@@ -911,26 +777,21 @@ void confirm_date(void)
         write_ds1307(bcd_year,YEAR_ADDR);
 
         initialized_date = NO;
-        ready = NO;
         print_default_mode_clcd_screen();
         mode = m_default_mode;
     }
-    else if(key == DOWN && prev_key == ALL_RELEASED)
+    else if(key == KEY_DOWN_PRESS)
     {
         initialized_date = NO;
-        ready = NO;
         print_screen_set_time_date();
         set_time_date_menu_index = first_option_index;
         previous_activity_time_set_time_and_date = get_ticks();
         mode = m_set_time_and_date;
     }
-    else if((unsigned int)(get_ticks() - previous_activity_time_confirm_date) >= INACTIVITY_THRESHOLD)
+    else if(key_handler_inactive(&previous_activity_time_confirm_date))
     {
         initialized_date = NO;
-        ready = NO;
         print_default_mode_clcd_screen();
         mode = m_default_mode;
     }
-
-    prev_key = key;
 }

@@ -55,23 +55,22 @@ unsigned char * clcd_get_time()
 
 unsigned char* clcd_get_date()
 {
-    //day 
     get_rtc_info();
-    date[0] = ((clock_reg[3]>>4) & 0x03) + '0';
-    date[1] = (clock_reg[3] & 0x0F) +'0';
+
+    date[0] = ((clock_reg[4] >> 4) & 0x03) + '0';
+    date[1] = (clock_reg[4] & 0x0F) + '0';
     date[2] = '-';
 
-    //month
-    date[3] = ((clock_reg[4]>>4) &0x01) + '0';
-    date[4] = (clock_reg[4] & 0x0F) +'0';
+    date[3] = ((clock_reg[5] >> 4) & 0x01) + '0';
+    date[4] = (clock_reg[5] & 0x0F) + '0';
     date[5] = '-';
-    //year
-    date[6] = ((clock_reg[5]>>4) &0x0F) + '0';
-    date[7] = (clock_reg[5] & 0x0F) +'0';
-    date[8] ='\0';
 
+    date[6] = ((clock_reg[6] >> 4) & 0x0F) + '0';
+    date[7] = (clock_reg[6] & 0x0F) + '0';
+    date[8] = '\0';
+
+    return date;
 }
-
 
 
 

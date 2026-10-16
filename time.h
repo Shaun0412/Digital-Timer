@@ -12,6 +12,6 @@ unsigned char * clcd_get_time();
 unsigned char* clcd_get_date();
 void get_time(unsigned char *time);
 
-unsigned int get_ticks();
+unsigned int get_ticks(void);
 #endif	/* TIME_H */
 
